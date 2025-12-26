@@ -75,14 +75,23 @@ for SCENE_DIR in "${SCENE_DIRS[@]}"; do
     echo "[INFO] Processing scene ${SCENE_COUNT}/${#SCENE_DIRS[@]}: ${SCENE_NAME}"
     
     # 计算掩码
+    # 注意：对于 SensatUrban 的大场景（2200万+点），建议增加 voxel_size 以减少内存占用
+    # DBSCAN 参数说明：
+    #   - max_dbscan_clusters_per_query: 每个query最多保留的簇数（默认10）
+    #   - min_dbscan_cluster_size: 最小簇大小，小于此值的簇会被过滤（默认10）
+    #   - max_total_dbscan_masks: 总的masks数量上限，防止内存溢出（默认1000）
     python class_agnostic_mask_computation/get_masks_single_scene.py \
     general.experiment_name=${EXPERIMENT_NAME} \
     general.checkpoint=${MASK_MODULE_CKPT_PATH} \
     general.train_mode=false \
     data.test_mode=test \
-    model.num_queries=120 \
+    data.voxel_size=0.5 \
+    model.num_queries=100 \
     general.use_dbscan=true \
     general.dbscan_eps=0.95 \
+    general.max_dbscan_clusters_per_query=10 \
+    general.min_dbscan_cluster_size=10 \
+    general.max_total_dbscan_masks=1000 \
     general.save_visualizations=${SAVE_VISUALIZATIONS} \
     general.scene_path=${SCENE_PLY_PATH} \
     general.mask_save_dir="${MASK_SAVE_DIR}" \

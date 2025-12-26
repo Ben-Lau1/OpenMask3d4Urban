@@ -1,0 +1,10 @@
+- general.experiment_name=sensaturban
+- general.checkpoint=/home/zhangshuai/workshop/open_vocabulary/LqhSpace/openmask3d_old/openmask3d/scannet200_val.ckpt
+- general.train_mode=false
+- data.test_mode=test
+- model.num_queries=120
+- general.use_dbscan=true
+- general.dbscan_eps=0.95
+- general.save_visualizations=false
+- general.scene_path=/home/zhangshuai/workshop/open_vocabulary/LqhSpace/openmask3d_old/openmask3d/data/SENSATURBAN_SCANS/birmingham_block_0/birmingham_block_0.ply
+- general.mask_save_dir=/home/zhangshuai/workshop/open_vocabulary/LqhSpace/openmask3d_old/openmask3d/output/2025-12-26-14-51-44-sensaturban/masks

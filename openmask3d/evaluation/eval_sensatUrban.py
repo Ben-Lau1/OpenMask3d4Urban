@@ -363,18 +363,40 @@ def evaluate(preds, gt_path):
     
     for i, (k, v) in enumerate(preds.items()):
         # 尝试多种 GT 文件格式
-        gt_file_txt = os.path.join(gt_path, k + ".txt")
-        gt_file_ply = os.path.join(gt_path, k + ".ply")
+        # 对于 SensatUrban，GT 标签在场景目录下的 PLY 文件中
+        # 场景名称 k 应该对应场景目录名
         
         # 如果 gt_path 是目录，尝试查找对应的 PLY 文件（SensatUrban 格式）
         if os.path.isdir(gt_path):
-            # 先尝试 PLY 文件
-            if os.path.isfile(gt_file_ply):
-                gt_file = gt_file_ply
+            # 方式1: 直接在 gt_path 目录下查找 {scene_name}.ply
+            gt_file_ply_direct = os.path.join(gt_path, k + ".ply")
+            # 方式2: 在场景子目录下查找 {scene_name}/{scene_name}.ply
+            gt_file_ply_subdir = os.path.join(gt_path, k, k + ".ply")
+            # 方式3: 在场景子目录下查找任意 .ply 文件
+            scene_dir = os.path.join(gt_path, k)
+            gt_file_txt = os.path.join(gt_path, k + ".txt")
+            
+            # 优先级：子目录 PLY > 直接目录 PLY > TXT
+            if os.path.isdir(scene_dir):
+                # 在场景目录下查找 PLY 文件
+                ply_files = [f for f in os.listdir(scene_dir) if f.endswith('.ply')]
+                if ply_files:
+                    gt_file = os.path.join(scene_dir, ply_files[0])
+                elif os.path.isfile(gt_file_ply_subdir):
+                    gt_file = gt_file_ply_subdir
+                elif os.path.isfile(gt_file_ply_direct):
+                    gt_file = gt_file_ply_direct
+                elif os.path.isfile(gt_file_txt):
+                    gt_file = gt_file_txt
+                else:
+                    print(f"[Warning] GT file not found for scene {k}, tried: {gt_file_ply_subdir}, {gt_file_ply_direct}, {gt_file_txt}")
+                    continue
+            elif os.path.isfile(gt_file_ply_direct):
+                gt_file = gt_file_ply_direct
             elif os.path.isfile(gt_file_txt):
                 gt_file = gt_file_txt
             else:
-                print(f"[Warning] GT file not found for scene {k}, tried: {gt_file_ply} and {gt_file_txt}")
+                print(f"[Warning] GT file not found for scene {k}, tried: {gt_file_ply_direct}, {gt_file_txt}")
                 continue
         else:
             # 如果 gt_path 是文件路径模式，直接使用

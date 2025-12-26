@@ -559,17 +559,55 @@ class InstanceSegmentation(pl.LightningModule):
                             new_mask = torch.zeros(curr_masks.shape, dtype=int)
                             new_mask[curr_masks] = torch.from_numpy(clusters) + 1
 
-                            for cluster_id in np.unique(clusters):
-                                original_pred_masks = masks[:, curr_query]
-                                if cluster_id != -1:
-                                    new_preds['pred_masks'].append(original_pred_masks * (new_mask == cluster_id + 1))
-                                    new_preds['pred_logits'].append(
-                                        prediction[self.decoder_id]['pred_logits'][bid, curr_query])
-                    scores, masks, classes, heatmap = self.get_class_agn_mask(
-                        torch.stack(new_preds['pred_logits']).cpu(),
-                        torch.stack(new_preds['pred_masks']).T,
-                        len(new_preds['pred_logits']),
-                        self.model.num_classes - 1)
+                            # 统计每个簇的点数，并按点数排序
+                            unique_clusters = np.unique(clusters)
+                            cluster_sizes = []
+                            for cluster_id in unique_clusters:
+                                if cluster_id != -1:  # 忽略噪声点
+                                    cluster_size = (clusters == cluster_id).sum()
+                                    cluster_sizes.append((cluster_id, cluster_size))
+                            
+                            # 按簇大小降序排序，限制每个query最多保留的簇数
+                            cluster_sizes.sort(key=lambda x: x[1], reverse=True)
+                            max_clusters_per_query = getattr(self.config.general, 'max_dbscan_clusters_per_query', 10)
+                            min_cluster_size = getattr(self.config.general, 'min_dbscan_cluster_size', 10)
+                            
+                            # 只保留前N个最大的簇，且簇大小要大于阈值
+                            kept_clusters = []
+                            for cluster_id, cluster_size in cluster_sizes[:max_clusters_per_query]:
+                                if cluster_size >= min_cluster_size:
+                                    kept_clusters.append(cluster_id)
+                            
+                            # 只处理保留的簇
+                            original_pred_masks = masks[:, curr_query]
+                            for cluster_id in kept_clusters:
+                                new_preds['pred_masks'].append(original_pred_masks * (new_mask == cluster_id + 1))
+                                new_preds['pred_logits'].append(
+                                    prediction[self.decoder_id]['pred_logits'][bid, curr_query])
+                    
+                    # 限制总的masks数量，防止内存溢出
+                    max_total_masks = getattr(self.config.general, 'max_total_dbscan_masks', 1000)
+                    if len(new_preds['pred_masks']) > max_total_masks:
+                        print(f"[WARNING] Too many DBSCAN masks ({len(new_preds['pred_masks'])}), limiting to {max_total_masks}")
+                        # 只保留前N个masks（按顺序，因为已经按簇大小排序）
+                        new_preds['pred_masks'] = new_preds['pred_masks'][:max_total_masks]
+                        new_preds['pred_logits'] = new_preds['pred_logits'][:max_total_masks]
+                    
+                    if len(new_preds['pred_masks']) > 0:
+                        scores, masks, classes, heatmap = self.get_class_agn_mask(
+                            torch.stack(new_preds['pred_logits']).cpu(),
+                            torch.stack(new_preds['pred_masks']).T,
+                            len(new_preds['pred_logits']),
+                            self.model.num_classes - 1)
+                    else:
+                        # 如果没有有效的masks，返回空结果
+                        print("[WARNING] No valid DBSCAN masks found, returning empty results")
+                        # 使用原始masks的形状来确定点数
+                        num_points = prediction[self.decoder_id]['pred_masks'][bid].shape[0]
+                        scores = torch.zeros(0)
+                        masks = torch.zeros(num_points, 0)
+                        classes = torch.zeros(0, dtype=torch.long)
+                        heatmap = torch.zeros(num_points, 0)
                 else:
                     scores, masks, classes, heatmap = self.get_class_agn_mask(
                     prediction[self.decoder_id]['pred_logits'][bid].detach().cpu(),

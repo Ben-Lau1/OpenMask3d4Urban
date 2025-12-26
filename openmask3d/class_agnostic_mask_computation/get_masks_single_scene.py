@@ -47,11 +47,16 @@ def get_parameters(cfg: DictConfig):
 
 
 def load_ply(filepath):
-    """加载 PLY 文件，支持 SensatUrban 格式（包含标签）"""
+    """加载 PLY 文件，支持 SensatUrban 格式（包含标签）
+    
+    注意：不要在这里下采样点云！下采样会导致掩码和点云索引不匹配。
+    内存优化应该通过增加体素尺寸（voxel_size）来实现，而不是下采样点云。
+    """
     if USE_SENSATURBAN_LOADER:
         try:
             # 尝试使用 SensatUrban 专用加载器
             coords, colors, labels = load_ply_xyzrgbl_fast(filepath)
+            
             # 计算法线
             pcd = o3d.geometry.PointCloud()
             pcd.points = o3d.utility.Vector3dVector(coords)
