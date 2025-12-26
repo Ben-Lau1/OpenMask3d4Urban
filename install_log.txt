@@ -1,0 +1,52 @@
+Using pip 24.0 from /home/zhangshuai/miniconda3/envs/openmask3d/lib/python3.10/site-packages/pip (python 3.10)
+Looking in indexes: https://pypi.tuna.tsinghua.edu.cn/simple
+Processing /home/zhangshuai/workshop/open_vocabulary/LqhSpace/openmask3d_old/openmask3d
+  Preparing metadata (pyproject.toml): started
+  Running command Preparing metadata (pyproject.toml)
+  running dist_info
+  creating /tmp/pip-modern-metadata-rt1zihhd/UNKNOWN.egg-info
+  writing /tmp/pip-modern-metadata-rt1zihhd/UNKNOWN.egg-info/PKG-INFO
+  writing dependency_links to /tmp/pip-modern-metadata-rt1zihhd/UNKNOWN.egg-info/dependency_links.txt
+  writing top-level names to /tmp/pip-modern-metadata-rt1zihhd/UNKNOWN.egg-info/top_level.txt
+  writing manifest file '/tmp/pip-modern-metadata-rt1zihhd/UNKNOWN.egg-info/SOURCES.txt'
+  reading manifest file '/tmp/pip-modern-metadata-rt1zihhd/UNKNOWN.egg-info/SOURCES.txt'
+  adding license file 'LICENSE'
+  writing manifest file '/tmp/pip-modern-metadata-rt1zihhd/UNKNOWN.egg-info/SOURCES.txt'
+  creating '/tmp/pip-modern-metadata-rt1zihhd/UNKNOWN.dist-info'
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: UNKNOWN
+  Building wheel for UNKNOWN (pyproject.toml): started
+  Running command Building wheel for UNKNOWN (pyproject.toml)
+  running bdist_wheel
+  running build
+  installing to build/bdist.linux-x86_64/wheel
+  running install
+  running install_egg_info
+  running egg_info
+  creating UNKNOWN.egg-info
+  writing UNKNOWN.egg-info/PKG-INFO
+  writing dependency_links to UNKNOWN.egg-info/dependency_links.txt
+  writing top-level names to UNKNOWN.egg-info/top_level.txt
+  writing manifest file 'UNKNOWN.egg-info/SOURCES.txt'
+  reading manifest file 'UNKNOWN.egg-info/SOURCES.txt'
+  adding license file 'LICENSE'
+  writing manifest file 'UNKNOWN.egg-info/SOURCES.txt'
+  Copying UNKNOWN.egg-info to build/bdist.linux-x86_64/wheel/UNKNOWN-0.0.0-py3.10.egg-info
+  running install_scripts
+  creating build/bdist.linux-x86_64/wheel/UNKNOWN-0.0.0.dist-info/WHEEL
+  creating '/tmp/pip-wheel-s_wuvd2k/tmpayd7is5k/UNKNOWN-0.0.0-py3-none-any.whl' and adding 'build/bdist.linux-x86_64/wheel' to it
+  adding 'UNKNOWN-0.0.0.dist-info/LICENSE'
+  adding 'UNKNOWN-0.0.0.dist-info/METADATA'
+  adding 'UNKNOWN-0.0.0.dist-info/WHEEL'
+  adding 'UNKNOWN-0.0.0.dist-info/top_level.txt'
+  adding 'UNKNOWN-0.0.0.dist-info/RECORD'
+  removing build/bdist.linux-x86_64/wheel
+  Building wheel for UNKNOWN (pyproject.toml): finished with status 'done'
+  Created wheel for UNKNOWN: filename=UNKNOWN-0.0.0-py3-none-any.whl size=1791 sha256=76ba74265cbc7dd30755e6a1cb7149b3a430bda3742623ea76a9c31a4484e3d2
+  Stored in directory: /tmp/pip-ephem-wheel-cache-3es1mq6r/wheels/47/9c/8e/0553aa321319e231440ef482b29a61a04e05ee269c88c86aa8
+Successfully built UNKNOWN
+Installing collected packages: UNKNOWN
+Successfully installed UNKNOWN-0.0.0
+
+[notice] A new release of pip is available: 24.0 -> 25.3
+[notice] To update, run: pip install --upgrade pip
