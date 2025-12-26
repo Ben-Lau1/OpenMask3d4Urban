@@ -108,7 +108,7 @@ class SensatUrbanInstSegEvaluator():
 
 def main():
     parser = argparse.ArgumentParser(description='Evaluate OpenMask3D on SensatUrban dataset')
-    parser.add_argument('--gt_dir', type=str, required=True, help='Path to ground truth directory')
+    parser.add_argument('--gt_dir', type=str, required=True, help='Path to ground truth directory or PLY file pattern (e.g., /path/to/scans/{}/scene.ply)')
     parser.add_argument('--mask_pred_dir', type=str, required=True, help='Path to predicted masks directory')
     parser.add_argument('--mask_features_dir', type=str, required=True, help='Path to mask features directory')
     parser.add_argument('--clip_model', type=str, default='ViT-L/14@336px', help='CLIP model type')

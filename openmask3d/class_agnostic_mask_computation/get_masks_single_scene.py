@@ -17,6 +17,16 @@ import torch
 import time
 import pdb
 
+# 尝试导入 SensatUrban 专用加载函数
+try:
+    import sys
+    sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
+    from openmask3d.utils_sensaturban import load_ply_xyzrgbl_fast
+    USE_SENSATURBAN_LOADER = True
+except ImportError:
+    USE_SENSATURBAN_LOADER = False
+    logging.warning("SensatUrban loader not found, using default Open3D loader")
+
 def get_parameters(cfg: DictConfig):
     #logger = logging.getLogger(__name__)
     load_dotenv(".env")
@@ -37,6 +47,23 @@ def get_parameters(cfg: DictConfig):
 
 
 def load_ply(filepath):
+    """加载 PLY 文件，支持 SensatUrban 格式（包含标签）"""
+    if USE_SENSATURBAN_LOADER:
+        try:
+            # 尝试使用 SensatUrban 专用加载器
+            coords, colors, labels = load_ply_xyzrgbl_fast(filepath)
+            # 计算法线
+            pcd = o3d.geometry.PointCloud()
+            pcd.points = o3d.utility.Vector3dVector(coords)
+            pcd.estimate_normals()
+            normals = np.asarray(pcd.normals)
+            # 将颜色从 [-1, 1] 转换回 [0, 1] 用于后续处理
+            colors = (colors + 1.0) / 2.0
+            return coords, colors, normals
+        except Exception as e:
+            logging.warning(f"Failed to use SensatUrban loader: {e}, falling back to Open3D")
+    
+    # 默认使用 Open3D 加载
     pcd = o3d.io.read_point_cloud(filepath)
     pcd.estimate_normals()
     coords = np.asarray(pcd.points)

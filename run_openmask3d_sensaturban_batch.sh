@@ -41,7 +41,7 @@ OPTIMIZE_GPU_USAGE=false
 IMG_EXTENSION=".jpg"  # 或 ".png"
 DEPTH_EXTENSION=".png"  # 或 ".jpg"
 DEPTH_SCALE=1000  # 根据数据集调整（ScanNet=1000, Replica=6553.5）
-SCENE_INTRINSIC_RESOLUTION="[1024,2048]"  # 根据你的内参分辨率调整
+SCENE_INTRINSIC_RESOLUTION="[1024,1024]"  # 根据你的内参分辨率调整
 
 # 创建输出目录
 mkdir -p "${MASK_SAVE_DIR}"
@@ -139,9 +139,11 @@ hydra.run.dir="${OUTPUT_FOLDER_DIRECTORY}/hydra_outputs/mask_features_computatio
 echo "[INFO] Feature computation completed!"
 
 # 步骤3: 评估（如果有 GT 标签）
-if [ -n "${SENSATURBAN_GT_DIR}" ] && [ -d "${SENSATURBAN_GT_DIR}" ]; then
+# 注意：SensatUrban 的标签在 PLY 文件中，gt_dir 应该指向包含 PLY 文件的目录
+if [ -d "${SENSATURBAN_GT_DIR}" ]; then
     echo "=========================================="
     echo "[INFO] Step 3: Running evaluation..."
+    echo "[INFO] GT directory: ${SENSATURBAN_GT_DIR} (looking for .ply files)"
     echo "=========================================="
     
     python evaluation/run_eval_sensaturban.py \
@@ -151,7 +153,8 @@ if [ -n "${SENSATURBAN_GT_DIR}" ] && [ -d "${SENSATURBAN_GT_DIR}" ]; then
     
     echo "[INFO] Evaluation completed!"
 else
-    echo "[INFO] Skipping evaluation (GT directory not set or not found)"
+    echo "[INFO] Skipping evaluation (GT directory not found: ${SENSATURBAN_GT_DIR})"
+    echo "[INFO] Note: SensatUrban labels are in PLY files. Set SENSATURBAN_GT_DIR if PLY files are in a different location."
 fi
 
 echo "=========================================="

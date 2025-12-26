@@ -8,6 +8,14 @@ import util_3d
 # === 引入 Sensat 常量 ===
 from sensatUrban_constants import VALID_CLASS_IDS, CLASS_LABELS, COLOR_MAP
 
+# === 尝试导入 SensatUrban PLY 加载器 ===
+try:
+    from openmask3d.utils_sensaturban import load_labels_from_ply
+    USE_PLY_LOADER = True
+except ImportError:
+    USE_PLY_LOADER = False
+    print("[WARNING] SensatUrban PLY loader not found, will try to load from .txt files")
+
 ID_TO_LABEL = {}
 LABEL_TO_ID = {}
 for i in range(len(VALID_CLASS_IDS)):
@@ -214,12 +222,43 @@ def make_pred_info(pred: dict):
     return pred_info
 
 def assign_instances_for_scan(pred: dict, gt_file: str):
+    """
+    为单个场景分配实例标签
+    
+    Args:
+        pred: 预测结果字典
+        gt_file: GT 文件路径，可以是 .txt 文件或 .ply 文件
+        
+    Returns:
+        gt2pred, pred2gt, sem_pred, gt_sem_labels
+    """
     pred_info = make_pred_info(pred)
-    try:
-        gt_ids = util_3d.load_ids(gt_file)
-    except Exception as e:
-        util.print_error('unable to load ' + gt_file + ': ' + str(e))
-        return {}, {}, None, None # Modified return
+    
+    # 尝试从 PLY 文件加载标签（SensatUrban 格式）
+    if USE_PLY_LOADER and gt_file.endswith('.ply'):
+        try:
+            gt_ids = load_labels_from_ply(gt_file)
+            print(f"[INFO] Loaded labels from PLY file: {gt_file}, shape: {gt_ids.shape}")
+        except Exception as e:
+            print(f"[WARNING] Failed to load from PLY: {e}, trying .txt file")
+            # 如果 PLY 加载失败，尝试对应的 .txt 文件
+            txt_file = gt_file.replace('.ply', '.txt')
+            if os.path.exists(txt_file):
+                try:
+                    gt_ids = util_3d.load_ids(txt_file)
+                except Exception as e2:
+                    util.print_error('unable to load ' + txt_file + ': ' + str(e2))
+                    return {}, {}, None, None
+            else:
+                util.print_error('unable to load ' + gt_file + ': ' + str(e))
+                return {}, {}, None, None
+    else:
+        # 默认从 .txt 文件加载
+        try:
+            gt_ids = util_3d.load_ids(gt_file)
+        except Exception as e:
+            util.print_error('unable to load ' + gt_file + ': ' + str(e))
+            return {}, {}, None, None
 
     # --- 1. 准备 Instance GT ---
     gt_instances = util_3d.get_instances(gt_ids, VALID_CLASS_IDS, CLASS_LABELS, ID_TO_LABEL)
@@ -308,6 +347,13 @@ def print_results(ap_avgs, iou_dict):
     print("=" * 80 + "\n")
 
 def evaluate(preds, gt_path):
+    """
+    评估预测结果
+    
+    Args:
+        preds: 预测结果字典，key 为场景名称
+        gt_path: GT 路径，可以是目录（包含 .txt 或 .ply 文件）或 PLY 文件路径模式
+    """
     print(f'[SensatEval] Evaluating {len(preds)} scans (Instance + Semantic)...')
     matches = {}
     
@@ -316,10 +362,26 @@ def evaluate(preds, gt_path):
     total_confusion_matrix = np.zeros((num_classes, num_classes))
     
     for i, (k, v) in enumerate(preds.items()):
-        gt_file = os.path.join(gt_path, k + ".txt")
-        if not os.path.isfile(gt_file):
-            print(f"[Warning] GT file not found: {gt_file}")
-            continue
+        # 尝试多种 GT 文件格式
+        gt_file_txt = os.path.join(gt_path, k + ".txt")
+        gt_file_ply = os.path.join(gt_path, k + ".ply")
+        
+        # 如果 gt_path 是目录，尝试查找对应的 PLY 文件（SensatUrban 格式）
+        if os.path.isdir(gt_path):
+            # 先尝试 PLY 文件
+            if os.path.isfile(gt_file_ply):
+                gt_file = gt_file_ply
+            elif os.path.isfile(gt_file_txt):
+                gt_file = gt_file_txt
+            else:
+                print(f"[Warning] GT file not found for scene {k}, tried: {gt_file_ply} and {gt_file_txt}")
+                continue
+        else:
+            # 如果 gt_path 是文件路径模式，直接使用
+            gt_file = gt_path.format(scene=k) if '{' in gt_path else gt_path
+            if not os.path.isfile(gt_file):
+                print(f"[Warning] GT file not found: {gt_file}")
+                continue
         
         # 获取 Instance 匹配结果 AND 语义预测/GT
         gt2pred, pred2gt, sem_pred, gt_sem = assign_instances_for_scan(v, gt_file)
