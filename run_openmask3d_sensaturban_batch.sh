@@ -20,10 +20,12 @@ set -e
 # --------
 # NOTE: SET THESE PARAMETERS!
 # 数据集根目录（包含所有场景文件夹）
-SENSATURBAN_SCANS_PATH="/PATH/TO/SENSATURBAN/SCANS"  # 修改为你的数据集路径
+SENSATURBAN_SCANS_PATH="/home/zhangshuai/workshop/open_vocabulary/LqhSpace/openmask3d_old/openmask3d/data/SENSATURBAN_SCANS"  # 修改为你的数据集路径
 # 模型检查点路径
-MASK_MODULE_CKPT_PATH="/PATH/TO/scannet200_val.ckpt"  # 或 SensatUrban 专用模型
-SAM_CKPT_PATH="/PATH/TO/sam_vit_h_4b8939.pth"
+# 注意：可以直接使用 ScanNet 预训练模型，因为掩码模块是类别无关的
+# 下载链接见 README.md 或 SENSATURBAN_WITHOUT_TRAINING.md
+MASK_MODULE_CKPT_PATH="/home/zhangshuai/workshop/open_vocabulary/LqhSpace/openmask3d_old/openmask3d/scannet200_val.ckpt"  # ScanNet 预训练模型即可
+SAM_CKPT_PATH="/home/zhangshuai/workshop/open_vocabulary/LqhSpace/openmask3d_old/openmask3d/sam_vit_h_4b8939.pth"
 # 输出目录
 EXPERIMENT_NAME="sensaturban"
 OUTPUT_DIRECTORY="$(pwd)/output"
